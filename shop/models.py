@@ -14,3 +14,12 @@ class Telephone(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+
+    @classmethod
+    def get_all(cls):
+        return Telephone.objects.all()
+
+    @classmethod
+    def post_new_item(cls, data):
+        Telephone.objects.create(**data)
+        return True
