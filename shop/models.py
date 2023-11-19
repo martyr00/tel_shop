@@ -1,4 +1,6 @@
 from django.db import models
+from django.db import connection
+from datetime import datetime
 
 
 class Telephone(models.Model):
@@ -17,16 +19,52 @@ class Telephone(models.Model):
 
     @classmethod
     def get_all(cls):
-        return Telephone.objects.all()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM shop_telephone;")
+            columns = [col[0] for col in cursor.description]
+            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        return results
 
     @classmethod
     def post_new_item(cls, data):
-        return Telephone.objects.create(**data)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        data['created_time'] = current_time
+        data['update_time'] = current_time
+
+        with connection.cursor() as cursor:
+            query = """
+                    INSERT INTO shop_telephone (title, brand, built_in_memory, price, diagonal_screen, created_time, update_time) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s);
+                """
+            cursor.execute(query, [data.get('title'), data.get('brand'), data.get('built_in_memory'), data.get('price'),
+                                   data.get('diagonal_screen'), data['created_time'], data['update_time']])
+            new_telephone_id = cursor.lastrowid
+
+        return new_telephone_id
 
     @classmethod
     def get_item(cls, telephone_id):
-        return Telephone.objects.get(id=telephone_id)
+        with connection.cursor() as cursor:
+            query = """
+                SELECT * FROM shop_telephone
+                WHERE id = %s;
+            """
+            cursor.execute(query, [telephone_id])
+
+            # Получаем имена столбцов из cursor.description
+            columns = [col[0] for col in cursor.description]
+
+            # Создаем словарь, используя имена столбцов в качестве ключей
+            result = dict(zip(columns, cursor.fetchone()))
+
+        return result
 
     @classmethod
     def delete_item(cls, telephone_id):
-        return Telephone.objects.get(id=telephone_id).delete()
+        with connection.cursor() as cursor:
+            query = """
+                DELETE FROM shop_telephone
+                WHERE id = %s;
+            """
+            cursor.execute(query, [telephone_id])
