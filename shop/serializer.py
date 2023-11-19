@@ -1,3 +1,4 @@
+from django.db import connection
 from rest_framework import serializers
 
 from shop.models import Telephone
@@ -23,11 +24,25 @@ class ProductSerializer(serializers.ModelSerializer):
         return Telephone.post_new_item(validated_data)
 
     def update(self, instance, validated_data):
-        instance.title = validated_data.get('title', instance.title)
-        instance.brand = validated_data.get('brand', instance.brand)
-        instance.built_in_memory = validated_data.get('built_in_memory', instance.built_in_memory)
-        instance.price = validated_data.get('price', instance.price)
-        instance.diagonal_screen = validated_data.get('diagonal_screen', instance.diagonal_screen)
-        instance.update_time = validated_data.get('update_time', instance.update_time)
-        instance.save()
-        return instance
+        with connection.cursor() as cursor:
+            query = """
+                UPDATE shop_telephone
+                SET
+                    title = COALESCE(%s, title),
+                    brand = COALESCE(%s, brand),
+                    built_in_memory = COALESCE(%s, built_in_memory),
+                    price = COALESCE(%s, price),
+                    diagonal_screen = COALESCE(%s, diagonal_screen),
+                    update_time = COALESCE(%s, update_time)
+                WHERE id = %s;
+            """
+            cursor.execute(query, [
+                validated_data.get('title', instance.get('title')),
+                validated_data.get('brand', instance.get('brand')),
+                validated_data.get('built_in_memory', instance.get('built_in_memory')),
+                validated_data.get('price', instance.get('price')),
+                validated_data.get('diagonal_screen', instance.get('diagonal_screen')),
+                validated_data.get('update_time', instance.get('update_time')),
+                instance.get('id')
+            ])
+            return instance
