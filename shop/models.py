@@ -21,5 +21,12 @@ class Telephone(models.Model):
 
     @classmethod
     def post_new_item(cls, data):
-        Telephone.objects.create(**data)
-        return True
+        return Telephone.objects.create(**data)
+
+    @classmethod
+    def get_item(cls, telephone_id):
+        return Telephone.objects.get(id=telephone_id)
+
+    @classmethod
+    def delete_item(cls, telephone_id):
+        return Telephone.objects.get(id=telephone_id).delete()
