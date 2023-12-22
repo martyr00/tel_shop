@@ -35,7 +35,7 @@ class TelephoneAPIView(APIView):
     def put(self, request, *args, **kwargs):
         telephone_id = kwargs.get("telephone_id", None)
         if not telephone_id:
-            return Response({"error": "Method PUT not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response({"error": "Method PATCH not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         try:
             serializer = ProductSerializer(data=request.data, instance=Telephone.get_item(telephone_id))
             serializer.is_valid(raise_exception=True)

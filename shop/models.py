@@ -52,10 +52,8 @@ class Telephone(models.Model):
             """
             cursor.execute(query, [telephone_id])
 
-            # Получаем имена столбцов из cursor.description
             columns = [col[0] for col in cursor.description]
 
-            # Создаем словарь, используя имена столбцов в качестве ключей
             result = dict(zip(columns, cursor.fetchone()))
 
         return result
